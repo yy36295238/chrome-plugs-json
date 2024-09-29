@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>JSON格式化工具</title>
+  <style>
+    body { 
+      margin: 0; 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    #container { 
+      display: flex; 
+      flex-direction: column; 
+      height: 100vh; 
+      padding: 20px; 
+      box-sizing: border-box;
+    }
+    #controls { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      margin-bottom: 20px;
+      background-color: #ffffff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    #paneCount {
+      display: flex;
+      align-items: center;
+    }
+    #paneCount label {
+      margin-right: 15px;
+      font-weight: bold;
+    }
+    #jsonInputs { 
+      display: flex; 
+      flex-grow: 1; 
+      overflow-x: auto;
+      gap: 10px;
+    }
+    .json-pane { 
+      display: flex; 
+      flex-direction: column; 
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      height: calc(100vh - 140px);
+      min-width: 250px;
+      position: relative;
+      overflow: hidden; /* 添加这行 */
+    }
+    .json-editor { 
+      flex-grow: 1; 
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 16px; /* 增大字体大小 */
+      padding: 20px;
+      padding-top: 40px;
+      margin: 0;
+      overflow: auto; /* 改为 auto */
+      white-space: pre;
+      word-wrap: normal; /* 改为 normal */
+      border: none;
+      border-radius: 8px;
+      background-color: #f8f8f8;
+      color: #333;
+    }
+    .json-editor:empty:before {
+      content: attr(placeholder);
+      color: #999;
+    }
+    .format-button,
+    .generate-demo-button,
+    .expand-all-button,
+    .copy-button,
+    .clear-button,
+    #clearAll {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.1s;
+      font-size: 12px;
+      font-weight: normal;
+    }
+    .format-button:hover,
+    .generate-demo-button:hover,
+    .expand-all-button:hover,
+    .copy-button:hover,
+    .clear-button:hover,
+    #clearAll:hover {
+      background-color: #45a049;
+      transform: translateY(-1px);
+    }
+    .format-button:active,
+    .generate-demo-button:active,
+    .expand-all-button:active,
+    .copy-button:active,
+    .clear-button:active,
+    #clearAll:active {
+      transform: translateY(1px);
+    }
+    .generate-demo-button {
+      background-color: #2196F3;
+    }
+    .generate-demo-button:hover {
+      background-color: #1e87db;
+    }
+    .expand-all-button {
+      background-color: #FFA500;
+    }
+    .expand-all-button:hover {
+      background-color: #FF8C00;
+    }
+    #clearAll {
+      background-color: #f44336;
+    }
+    #clearAll:hover {
+      background-color: #d32f2f;
+    }
+    .resizer {
+      width: 10px;
+      background: #e0e0e0;
+      cursor: col-resize;
+      transition: background-color 0.3s;
+    }
+    .resizer:hover {
+      background-color: #bdbdbd;
+    }
+    .button-container {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      display: flex;
+      gap: 5px;
+      z-index: 10;
+    }
+    .collapsible {
+      cursor: pointer;
+      user-select: none;
+      color: #333;
+      transition: color 0.3s;
+    }
+    .collapsible::before {
+      content: '▼';
+      display: inline-block;
+      margin-right: 5px;
+      transition: transform 0.3s, color 0.3s;
+      font-size: 12px;
+      color: #666;
+    }
+    .collapsible.collapsed::before {
+      transform: rotate(-90deg);
+      color: #0066cc;
+    }
+    .collapsible:hover {
+      color: #0066cc;
+    }
+    .collapsible-content {
+      margin-left: 20px;
+      overflow: visible; /* 改为 visible */
+      transition: opacity 0.3s ease-out;
+      opacity: 1;
+      max-height: none; /* 移除 max-height 限制 */
+    }
+    .collapsible-content.collapsed {
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+    }
+    input[type="radio"] {
+      margin-right: 5px;
+    }
+    input[type="radio"] + label {
+      margin-right: 15px;
+    }
+    .json-key {
+      color: #0000ff; /* 保持蓝色 */
+      font-weight: normal; /* 移除加粗 */
+    }
+    .json-value {
+      color: #008000; /* 保持绿色 */
+    }
+    .json-value:not(:last-child)::after {
+      content: ''; /* 移除逗号 */
+      color: #333;
+    }
+    .collapsible {
+      color: #333;
+      font-weight: normal; /* 移除加粗 */
+    }
+    .json-string {
+      color: #a31515;
+    }
+    .json-number {
+      color: #098658;
+    }
+    .json-boolean {
+      color: #0000ff;
+    }
+    .json-null {
+      color: #808080;
+    }
+    .copy-button {
+      background-color: #9C27B0;
+    }
+    .copy-button:hover {
+      background-color: #7B1FA2;
+    }
+    .clear-button {
+      background-color: #f44336;
+    }
+    .clear-button:hover {
+      background-color: #d32f2f;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <div id="controls">
+      <div id="paneCount">
+        <label>分隔栏数量：</label>
+        <input type="radio" id="pane2" name="paneCount" value="2" checked>
+        <label for="pane2">2</label>
+        <input type="radio" id="pane3" name="paneCount" value="3">
+        <label for="pane3">3</label>
+        <input type="radio" id="pane4" name="paneCount" value="4">
+        <label for="pane4">4</label>
+      </div>
+      <button id="clearAll">清除所有</button>
+    </div>
+    <div id="jsonInputs"></div>
+  </div>
+  <script src="./compare.js"></script>
+</body>
+</html>
