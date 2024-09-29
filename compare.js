@@ -239,7 +239,7 @@ function generateDemoData(editor) {
 }
 
 function getRandomName() {
-  const surnames = ["张", "李", "王", "赵", "陈", "刘", "杨", "黄", "周", "吴"];
+  const surnames = ["张", "李", "��", "赵", "陈", "刘", "杨", "黄", "周", "吴"];
   const names = ["伟", "芳", "娜", "秀英", "敏", "静", "丽", "强", "磊", "军"];
   return surnames[Math.floor(Math.random() * surnames.length)] + names[Math.floor(Math.random() * names.length)];
 }
@@ -361,32 +361,35 @@ function compareJsonData() {
     return;
   }
 
+  // 以第一个非空JSON作为基准
+  const baseObject = jsonObjects[0];
+  const objectsToCompare = jsonObjects.slice(1);
+
   // 执行比较并直接在JSON上显示结果
-  const differences = compareMultipleObjects(jsonObjects);
+  const differences = compareMultipleObjects(baseObject, objectsToCompare);
   displayMultipleComparisonResultsInline(differences, editors);
 }
 
-function compareMultipleObjects(objects) {
+function compareMultipleObjects(baseObject, objectsToCompare) {
   const differences = [];
-  const baseObject = objects[0].content;
 
   // 收集所有在基准对象中存在但在其他对象中不存在的属性
   const extraInBase = new Set();
 
-  for (let i = 1; i < objects.length; i++) {
-    const diff = compareObjects(baseObject, objects[i].content, '', objects[i].index);
+  objectsToCompare.forEach(obj => {
+    const diff = compareObjects(baseObject.content, obj.content, '', obj.index);
     differences.push(diff);
     
     // 收集在基准对象中存在但在当前对象中不存在的属性
     diff.filter(d => d.type === 'missing').forEach(d => extraInBase.add(d.path));
-  }
+  });
 
   // 为基准对象创建差异数组
   const baseDifferences = Array.from(extraInBase).map(path => ({
     path,
     type: 'extra_in_base',
-    value: getValueByPath(baseObject, path),
-    index: 0
+    value: getValueByPath(baseObject.content, path),
+    index: baseObject.index
   }));
 
   differences.unshift(baseDifferences);
@@ -432,8 +435,9 @@ function displayMultipleComparisonResultsInline(differences, editors) {
     if (content === null) {
       return content;
     } else {
-      const diff = differences[index];
-      return diff ? highlightDifferences(content, diff, index === 0 ? 'base' : 'compare') : content;
+      const diff = index === differences[0].index ? differences[0] : 
+                   differences.find(d => d.some(item => item.index === index));
+      return diff ? highlightDifferences(content, diff, index === differences[0].index ? 'base' : 'compare') : content;
     }
   });
 
