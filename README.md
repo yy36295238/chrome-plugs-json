@@ -17,5 +17,7 @@
 3. 启用："开发者模式"
 4. 点击："加载已解压的扩展程序"
 5. 选择：选择刚下载好的文件目录。
+6. 使用：在Chrome浏览器右上角，"扩展程序"找到图标是【J】JSON格式化，点击打开使用
+
 
 ![image](https://github.com/user-attachments/assets/60ca2683-a991-4c23-847f-54c38c0652ea)
