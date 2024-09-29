@@ -31,55 +31,55 @@
       display: flex;
       align-items: center;
       background-color: #f0f0f0;
-      border-radius: 16px;
-      padding: 3px;
+      border-radius: 4px;
+      padding: 4px;
     }
+
     #paneCount label {
-      margin-right: 8px;
+      margin-right: 5px; /* 将右边距从 10px 减小到 5px */
       font-weight: bold;
       color: #333;
-      font-size: 13px;
+      font-size: 14px;
     }
-    .radio-group {
+
+    .tab-group {
       display: flex;
-      background-color: #fff;
-      border-radius: 13px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      padding: 2px;
     }
-    .radio-group input[type="radio"] {
+
+    .tab-group input[type="radio"] {
       display: none;
     }
-    .radio-group label {
-      padding: 4px 8px;
+
+    .tab-group label {
+      padding: 6px 12px;
       cursor: pointer;
-      transition: background-color 0.3s, color 0.3s;
-      margin: 0;
-      font-size: 12px;
+      transition: all 0.3s ease;
+      border-radius: 2px;
+      font-size: 14px;
+      color: #555;
     }
-    .radio-group input[type="radio"]:checked + label {
-      background-color: #4CAF50;
-      color: white;
+
+    .tab-group input[type="radio"]:checked + label {
+      background-color: #fff;
+      color: #4CAF50;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
-    .radio-group label:hover {
-      background-color: #e0e0e0;
+
+    .tab-group label:hover {
+      background-color: #d0d0d0;
     }
-    .radio-group input[type="radio"]:checked + label:hover {
-      background-color: #45a049;
-    }
-    #paneCount {
-      display: flex;
-      align-items: center;
-    }
-    #paneCount label {
-      margin-right: 15px;
-      font-weight: bold;
+
+    .tab-group input[type="radio"]:checked + label:hover {
+      background-color: #f8f8f8;
     }
     #jsonInputs { 
       display: flex; 
       flex-grow: 1; 
       overflow-x: auto;
-      gap: 10px;
+      gap: 5px; /* 将间距从 10px 减小到 5px */
     }
     .json-pane { 
       display: flex; 
@@ -215,7 +215,7 @@
     }
 
     .resizer {
-      width: 10px;
+      width: 5px; /* 将宽度从 10px 减小到 5px */
       background: #e0e0e0;
       cursor: col-resize;
       transition: background-color 0.3s;
@@ -349,8 +349,8 @@
   <div id="container">
     <div id="controls">
       <div id="paneCount">
-        <label>分隔栏数量：</label>
-        <div class="radio-group">
+        <label>分隔栏：</label>
+        <div class="tab-group">
           <input type="radio" id="pane2" name="paneCount" value="2" checked>
           <label for="pane2">2</label>
           <input type="radio" id="pane3" name="paneCount" value="3">
