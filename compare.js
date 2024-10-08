@@ -1,4 +1,5 @@
-// 将所有函数定义移到全局作用域
+// 移除这个全局变量
+// let lineNumber = 1;
 
 function formatJsonWithCollapsible(obj, indent = 0) {
   if (typeof obj !== 'object' || obj === null) {
@@ -78,7 +79,8 @@ function createJsonInputs(count) {
       editor.setAttribute('placeholder', `JSON ${i + 1}`);
       
       editor.addEventListener('input', function() {
-        saveData();
+        // 移除 saveData() 调用
+        // saveData();
       });
       
       const buttonContainer = document.createElement('div');
@@ -143,7 +145,7 @@ function createJsonInputs(count) {
   // 如果的数量小于当前数量，移除多余的分隔
   else if (count < currentCount) {
     for (let i = currentCount - 1; i >= count; i--) {
-      jsonInputs.removeChild(jsonInputs.lastChild); // 移除最后一个分隔栏
+      jsonInputs.removeChild(jsonInputs.lastChild); // 移除后一个分隔栏
       if (i > count) {
         jsonInputs.removeChild(jsonInputs.lastChild); // 移除分隔条
       }
@@ -156,8 +158,8 @@ function createJsonInputs(count) {
     pane.style.width = paneWidth;
   });
 
-  // 保存新的分隔栏数量
-  chrome.storage.local.set({paneCount: count});
+  // 移除保存分隔栏数量的代码
+  // chrome.storage.local.set({paneCount: count});
 }
 
 function initResize(e) {
@@ -185,20 +187,60 @@ function initResize(e) {
 }
 
 function formatJSON(obj) {
-  return JSON.stringify(obj, null, 2);
+  return JSON.stringify(obj, (key, value) => {
+    if (typeof value === 'string') {
+      // 尝试解析字符串值为 JSON
+      try {
+        JSON.parse(value);
+        // 如果成功解析，返回原始字符串，保留转义字符
+        return value;
+      } catch (e) {
+        // 如果解析失败，说明不是 JSON 字符串，正常处理
+      }
+    }
+    return value;
+  }, 2);
 }
 
 function formatJsonEditor(editor) {
   try {
-    const content = JSON.parse(editor.textContent);
-    const formattedHtml = formatJsonWithCollapsible(content);
-    editor.innerHTML = formattedHtml;
+    const content = editor.textContent;
+    const parsedContent = JSON.parse(content);
+    const formattedJson = formatJSON(parsedContent);
+    const highlightedJson = highlightJson(formattedJson);
+    editor.innerHTML = highlightedJson;
+    // 添加可折叠功能的监听器
     addCollapsibleListeners(editor);
-    saveData();
+    // 移除 saveData() 调用
+    // saveData();
   } catch (e) {
     console.error('Invalid JSON:', e);
     alert('无效的 JSON 格式');
   }
+}
+
+function highlightJson(json) {
+  return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+    let cls = 'json-number';
+    if (/^"/.test(match)) {
+      if (/:$/.test(match)) {
+        cls = 'json-key';
+      } else {
+        cls = 'json-string';
+      }
+      // 对字符内容进行HTML转，JSON符
+      match = match.replace(/&/g, '&amp;')
+                   .replace(/</g, '&lt;')
+                   .replace(/>/g, '&gt;')
+                   .replace(/"/g, '&quot;')
+                   .replace(/'/g, '&#39;');
+    } else if (/true|false/.test(match)) {
+      cls = 'json-boolean';
+    } else if (/null/.test(match)) {
+      cls = 'json-null';
+    }
+    return '<span class="' + cls + '">' + match + '</span>';
+  });
 }
 
 function addCollapsibleListeners(editor) {
@@ -232,14 +274,15 @@ function generateDemoData(editor) {
     "hobbies": getRandomHobbies()
   };
 
-  const formattedHtml = formatJsonWithCollapsible(demoData);
-  editor.innerHTML = formattedHtml;
-  addCollapsibleListeners(editor);
-  saveData();
+  const formattedJson = formatJSON(demoData);
+  const highlightedJson = highlightJson(formattedJson);
+  editor.innerHTML = highlightedJson;
+  // 移除 saveData() 调用
+  // saveData();
 }
 
 function getRandomName() {
-  const surnames = ["张", "李", "��", "赵", "陈", "刘", "杨", "黄", "周", "吴"];
+  const surnames = ["张", "李", "", "赵", "陈", "刘", "杨", "黄", "周", "吴"];
   const names = ["伟", "芳", "娜", "秀英", "敏", "静", "丽", "强", "磊", "军"];
   return surnames[Math.floor(Math.random() * surnames.length)] + names[Math.floor(Math.random() * names.length)];
 }
@@ -249,7 +292,7 @@ function getRandomAge(min, max) {
 }
 
 function getRandomCity() {
-  const cities = ["北京", "上海", "广州", "深圳", "杭州", "南京", "成都", "重庆", "武汉", "西安"];
+  const cities = ["北京", "上海", "广州", "深圳", "杭州", "南", "成都", "重庆", "武汉", "西安"];
   return cities[Math.floor(Math.random() * cities.length)];
 }
 
@@ -266,40 +309,16 @@ function getRandomHobbies() {
   return selectedHobbies;
 }
 
+// 删除或注释掉这个函数
+/*
 function saveData() {
   const editors = jsonInputs.querySelectorAll('.json-editor');
   const data = Array.from(editors).map(editor => editor.textContent);
   chrome.storage.local.set({
     jsonData: data
-    // 移除 lastJsonData 的保存
   });
 }
-
-function loadData() {
-  chrome.storage.local.get(['paneCount', 'jsonData'], function(result) {
-    const count = result.paneCount || 2;
-    const data = result.jsonData || [];
-
-    const radio = document.querySelector(`input[name="paneCount"][value="${count}"]`);
-    if (radio) radio.checked = true;
-
-    createJsonInputs(count);
-
-    const editors = jsonInputs.querySelectorAll('.json-editor');
-    editors.forEach((editor, index) => {
-      if (data[index]) {
-        try {
-          const content = JSON.parse(data[index]);
-          const formattedHtml = formatJsonWithCollapsible(content);
-          editor.innerHTML = formattedHtml;
-          addCollapsibleListeners(editor);
-        } catch (e) {
-          editor.textContent = data[index];
-        }
-      }
-    });
-  });
-}
+*/
 
 function clearAllData() {
   const editors = jsonInputs.querySelectorAll('.json-editor');
@@ -307,7 +326,7 @@ function clearAllData() {
     editor.textContent = '';
     editor.removeAttribute('data-highlighted');
   });
-  saveData();
+  // 移除 saveData() 调用（如果有的话）
 }
 
 function expandAllJson(editor) {
@@ -361,133 +380,175 @@ function compareJsonData() {
     return;
   }
 
-  // 以第一个非空JSON作为基准
+  // 获取第一个非空JSON作为基准
   const baseObject = jsonObjects[0];
-  const objectsToCompare = jsonObjects.slice(1);
+  const comparisons = [];
 
-  // 执行比较并直接在JSON上显示结果
-  const differences = compareMultipleObjects(baseObject, objectsToCompare);
-  displayMultipleComparisonResultsInline(differences, editors);
-}
-
-function compareMultipleObjects(baseObject, objectsToCompare) {
-  const differences = [];
-
-  // 收集所有在基准对象中存在但在其他对象中不存在的属性
-  const extraInBase = new Set();
-
-  objectsToCompare.forEach(obj => {
-    const diff = compareObjects(baseObject.content, obj.content, '', obj.index);
-    differences.push(diff);
-    
-    // 收集在基准对象中存在但在当前对象中不存在的属性
-    diff.filter(d => d.type === 'missing').forEach(d => extraInBase.add(d.path));
-  });
-
-  // 为基准对象创建差异数组
-  const baseDifferences = Array.from(extraInBase).map(path => ({
-    path,
-    type: 'extra_in_base',
-    value: getValueByPath(baseObject.content, path),
-    index: baseObject.index
-  }));
-
-  differences.unshift(baseDifferences);
-
-  return differences;
-}
-
-function compareObjects(obj1, obj2, path = '', index) {
-  const differences = [];
-
-  for (const key in obj1) {
-    const newPath = path ? `${path}.${key}` : key;
-
-    if (!(key in obj2)) {
-      differences.push({path: newPath, type: 'missing', value: obj1[key], index});
-    } else if (typeof obj1[key] !== typeof obj2[key]) {
-      differences.push({path: newPath, type: 'type_mismatch', value1: obj1[key], value2: obj2[key], index});
-    } else if (typeof obj1[key] === 'object' && obj1[key] !== null) {
-      differences.push(...compareObjects(obj1[key], obj2[key], newPath, index));
-    } else if (obj1[key] !== obj2[key]) {
-      differences.push({path: newPath, type: 'value_mismatch', value1: obj1[key], value2: obj2[key], index});
-    }
+  // 与其他所有非空JSON进行比较
+  for (let i = 1; i < jsonObjects.length; i++) {
+    const comparison = compareObjects(baseObject.content, jsonObjects[i].content, '', jsonObjects[i].index);
+    comparisons.push({ index: jsonObjects[i].index, differences: comparison });
   }
 
-  for (const key in obj2) {
-    const newPath = path ? `${path}.${key}` : key;
-    if (!(key in obj1)) {
-      differences.push({path: newPath, type: 'extra', value: obj2[key], index});
-    }
-  }
+  displayMultipleComparisonResults(baseObject, comparisons, editors);
 
-  return differences;
+  // 平滑滚动到最左侧
+  const jsonInputsContainer = document.getElementById('jsonInputs');
+  jsonInputsContainer.scrollTo({
+    left: 0,
+    behavior: 'smooth'
+  });
 }
 
-function displayMultipleComparisonResultsInline(differences, editors) {
-  const editorsArray = Array.from(editors);
-  const contents = editorsArray.map(editor => {
-    const content = editor.textContent.trim();
-    return content ? JSON.parse(content) : null;
+function displayMultipleComparisonResults(baseObject, comparisons, editors) {
+  const baseContent = JSON.parse(editors[baseObject.index].textContent);
+  const highlightedBase = highlightDifferences(baseContent, comparisons.flatMap(c => c.differences), 'base');
+  editors[baseObject.index].innerHTML = formatJSONWithHighlight(highlightedBase);
+
+  comparisons.forEach(comparison => {
+    const content = JSON.parse(editors[comparison.index].textContent);
+    const highlightedContent = highlightDifferences(content, comparison.differences, 'compare');
+    editors[comparison.index].innerHTML = formatJSONWithHighlight(highlightedContent);
   });
 
-  const highlightedContents = contents.map((content, index) => {
-    if (content === null) {
-      return content;
-    } else {
-      const diff = index === differences[0].index ? differences[0] : 
-                   differences.find(d => d.some(item => item.index === index));
-      return diff ? highlightDifferences(content, diff, index === differences[0].index ? 'base' : 'compare') : content;
-    }
-  });
-
-  editorsArray.forEach((editor, index) => {
-    if (highlightedContents[index] !== null) {
-      editor.innerHTML = formatJsonWithCollapsible(highlightedContents[index]);
-      addCollapsibleListeners(editor);
-    }
-  });
+  editors.forEach(editor => addCollapsibleListeners(editor));
 }
 
 function highlightDifferences(obj, differences, type) {
   const result = JSON.parse(JSON.stringify(obj)); // 创建深拷贝
 
-  differences.forEach(diff => {
-    const pathParts = diff.path.split('.');
-    let current = result;
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      if (current[pathParts[i]] === undefined) {
-        break;
-      }
-      current = current[pathParts[i]];
+  // 创建一个Set来跟踪所有的差异路径
+  const diffPaths = new Set(differences.map(diff => diff.path));
+
+  function highlightObject(current, path = '') {
+    if (Array.isArray(current)) {
+      return current.map((item, index) => highlightObject(item, `${path}[${index}]`));
     }
-    const lastPart = pathParts[pathParts.length - 1];
+    if (typeof current !== 'object' || current === null) {
+      return current;
+    }
 
-    let highlightClass = 'highlight-different';
-
-    if (type === 'base' && diff.type === 'extra_in_base') {
-      // 在基准JSON中标记多出的部分
-      if (current[lastPart] !== undefined) {
-        current[lastPart] = {
-          __highlight: highlightClass,
-          __value: current[lastPart]
+    const highlightedObj = {};
+    for (const [key, value] of Object.entries(current)) {
+      const currentPath = path ? `${path}.${key}` : key;
+      if (diffPaths.has(currentPath)) {
+        const diff = differences.find(d => d.path === currentPath);
+        let highlightClass = '';
+        
+        // 根据差异类型选择高亮颜色
+        if (diff.type === 'missing' || diff.type === 'extra') {
+          highlightClass = 'highlight-red';
+        } else if (diff.type === 'value_mismatch') {
+          highlightClass = 'highlight-yellow';
+        }
+        
+        highlightedObj[key] = {
+          value: highlightObject(value, currentPath),
+          highlight: highlightClass
         };
-      }
-    } else if (type === 'compare') {
-      if (diff.type === 'extra') {
-        // 对于额外的属性，我们需要添加它
-        current[lastPart] = {
-          __highlight: highlightClass,
-          __value: diff.value
-        };
-      } else if (current[lastPart] !== undefined) {
-        current[lastPart] = {
-          __highlight: highlightClass,
-          __value: current[lastPart]
-        };
+      } else {
+        highlightedObj[key] = highlightObject(value, currentPath);
       }
     }
-  });
+    return highlightedObj;
+  }
+
+  return highlightObject(result);
+}
+
+function compareObjects(obj1, obj2, path = '', index) {
+  const differences = [];
+
+  if (Array.isArray(obj1) && Array.isArray(obj2)) {
+    // 处理数组
+    const maxLength = Math.max(obj1.length, obj2.length);
+    for (let i = 0; i < maxLength; i++) {
+      const newPath = `${path}[${i}]`;
+      if (i >= obj1.length) {
+        differences.push({path: newPath, type: 'missing', value: obj2[i], index});
+      } else if (i >= obj2.length) {
+        differences.push({path: newPath, type: 'extra', value: obj1[i], index});
+      } else {
+        differences.push(...compareObjects(obj1[i], obj2[i], newPath, index));
+      }
+    }
+  } else if (typeof obj1 === 'object' && obj1 !== null && typeof obj2 === 'object' && obj2 !== null) {
+    // 处理对象
+    const allKeys = new Set([...Object.keys(obj1), ...Object.keys(obj2)]);
+    for (const key of allKeys) {
+      const newPath = path ? `${path}.${key}` : key;
+      if (!(key in obj1)) {
+        differences.push({path: newPath, type: 'missing', value: obj2[key], index});
+      } else if (!(key in obj2)) {
+        differences.push({path: newPath, type: 'extra', value: obj1[key], index});
+      } else if (typeof obj1[key] !== typeof obj2[key]) {
+        differences.push({path: newPath, type: 'type_mismatch', value1: obj1[key], value2: obj2[key], index});
+      } else if (typeof obj1[key] === 'object' && obj1[key] !== null) {
+        differences.push(...compareObjects(obj1[key], obj2[key], newPath, index));
+      } else if (JSON.stringify(obj1[key]) !== JSON.stringify(obj2[key])) {
+        differences.push({path: newPath, type: 'value_mismatch', value1: obj1[key], value2: obj2[key], index});
+      }
+    }
+  } else if (obj1 !== obj2) {
+    // 处理原始类型
+    differences.push({path, type: 'value_mismatch', value1: obj1, value2: obj2, index});
+  }
+
+  return differences;
+}
+
+function formatJSONWithHighlight(obj, indent = 0) {
+  if (typeof obj !== 'object' || obj === null) {
+    return highlightJson(JSON.stringify(obj));
+  }
+
+  const isArray = Array.isArray(obj);
+  const openBracket = isArray ? '[' : '{';
+  const closeBracket = isArray ? ']' : '}';
+  const indentStr = ' '.repeat(indent);
+  const nextIndentStr = ' '.repeat(indent + 2);
+
+  let result = `${openBracket}`;
+
+  const entries = isArray ? obj : Object.entries(obj);
+  const lastIndex = entries.length - 1;
+
+  if (entries.length > 0) {
+    result += '\n';
+    entries.forEach((item, index) => {
+      const isLast = index === lastIndex;
+      let key, value;
+      if (isArray) {
+        value = item;
+      } else {
+        [key, value] = item;
+      }
+
+      const highlightClass = value && value.highlight ? value.highlight : '';
+      const actualValue = value && value.hasOwnProperty('value') ? value.value : value;
+
+      let line = nextIndentStr;
+      if (!isArray) {
+        line += `<span class="json-key">"${key}"</span>: `;
+      }
+
+      if (typeof actualValue === 'object' && actualValue !== null) {
+        const nestedJson = formatJSONWithHighlight(actualValue, indent + 2);
+        result += `<span class="${highlightClass}">${line}${nestedJson.trim()}</span>`;
+      } else {
+        const formattedValue = highlightJson(JSON.stringify(actualValue));
+        result += `<span class="${highlightClass}">${line}${formattedValue}</span>`;
+      }
+
+      if (!isLast) {
+        result += ',';
+      }
+      result += '\n';
+    });
+    result += `${indentStr}${closeBracket}`;
+  } else {
+    result += closeBracket;
+  }
 
   return result;
 }
@@ -514,6 +575,6 @@ document.addEventListener('DOMContentLoaded', function() {
   clearAllButton.addEventListener('click', clearAllData);
   compareButton.addEventListener('click', compareJsonData);
 
-  // 初始化：加载保存的数据
-  loadData();
+  // 初始化：创建默认的 JSON 输入框
+  createJsonInputs(2); // 默认创建 2 个分隔栏
 });
