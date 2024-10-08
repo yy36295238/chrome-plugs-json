@@ -80,6 +80,7 @@
       flex-grow: 1; 
       overflow-x: auto;
       gap: 5px; /* 将间距从 10px 减小到 5px */
+      position: relative; /* 添加这行 */
     }
     .json-pane { 
       display: flex; 
@@ -106,6 +107,7 @@
       border-radius: 8px;
       background-color: #f8f8f8;
       color: #333;
+      line-height: 1.5;
     }
     .json-editor:empty:before {
       content: attr(placeholder);
@@ -290,7 +292,26 @@
       color: #808080;
     }
     .highlight-different {
-      background-color: #ffffcc; /* 黄色 */
+      background-color: #ffff00; /* 黄色背景 */
+      color: #000000; /* 黑色文字，增加对比度 */
+      font-weight: bold; /* 加粗文字 */
+      padding: 0 4px; /* 保留左右内边距 */
+      border-radius: 3px; /* 圆角 */
+      display: inline-block; /* 保持为行内块级元素 */
+      line-height: 1.5em; /* 确保行高与其他文本一致 */
+      width: 100%; /* 确保高亮覆盖整行 */
+    }
+    .highlight-missing {
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
+    .highlight-extra {
+      font-weight: bolder;
+      text-decoration: underline;
+    }
+    .highlight-mismatch {
+      font-style: italic;
+      border-bottom: 2px wavy #ff6666;
     }
     #clearAll, #compare {
       padding: 8px 15px;
@@ -342,6 +363,65 @@
     #compare:active {
       transform: translateY(0);
       box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+
+    .json-line {
+      position: relative;
+      line-height: 1.5em;
+      padding: 0; /* 移除内边距 */
+      margin: 0; /* 移除外边距 */
+    }
+
+    /* 如果还有问题，可以尝试添加这个样式 */
+    .json-editor span {
+      display: inline-block;
+      line-height: 1.5em;
+    }
+
+    /* ... 其他样式保持不变 ... */
+
+    .highlight-yellow {
+      background-color: #ffff00; /* 黄色背景 */
+      color: #000000; /* 黑色文字 */
+      font-weight: bold;
+      padding: 0 4px;
+      border-radius: 3px;
+      display: inline-block;
+      line-height: 1.5em;
+      width: 100%; /* 确保高亮覆盖整行 */
+    }
+
+    .highlight-red {
+      background-color: #ffcccc; /* 浅红色背景 */
+      color: #cc0000; /* 深红色文字 */
+      font-weight: bold;
+      padding: 0 4px;
+      border-radius: 3px;
+      display: inline-block;
+      line-height: 1.5em;
+      width: 100%; /* 确保高亮覆盖整行 */
+    }
+
+    /* 移除或注释掉以下样式 */
+    /*
+    .highlight-different { ... }
+    .highlight-missing { ... }
+    .highlight-extra { ... }
+    .highlight-mismatch { ... }
+    */
+
+    /* ... 其他样式保持不变 ... */
+
+    .json-editor span {
+      display: inline-block;
+      line-height: inherit;
+    }
+
+    .highlight-yellow,
+    .highlight-red {
+      display: inline-block;
+      width: 100%;
+      line-height: inherit;
     }
   </style>
 </head>
