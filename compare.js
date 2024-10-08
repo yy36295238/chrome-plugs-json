@@ -1,6 +1,22 @@
 // 移除这个全局变量
 // let lineNumber = 1;
 
+// 新增函数：递归地对对象的键进行排序
+function sortObjectKeys(obj) {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(sortObjectKeys);
+  }
+
+  return Object.keys(obj).sort().reduce((result, key) => {
+    result[key] = sortObjectKeys(obj[key]);
+    return result;
+  }, {});
+}
+
 function formatJsonWithCollapsible(obj, indent = 0) {
   if (typeof obj !== 'object' || obj === null) {
     return formatPrimitive(obj);
@@ -62,93 +78,93 @@ function createJsonInputs(count) {
   const currentPanes = jsonInputs.querySelectorAll('.json-pane');
   const currentCount = currentPanes.length;
 
+  // 保存现有的数据
+  const existingData = Array.from(currentPanes).map(pane => {
+    const editor = pane.querySelector('.json-editor');
+    return editor ? editor.innerHTML : '';
+  });
+
   // 计算新的宽度
   const paneWidth = `calc(${100 / count}% - ${5 * (count - 1) / count}px)`;
 
-  // 如果新的数量大于当前数量，添加新的分隔栏
-  if (count > currentCount) {
-    for (let i = currentCount; i < count; i++) {
-      const pane = document.createElement('div');
-      pane.className = 'json-pane';
-      pane.style.width = paneWidth;
-      
-      const editor = document.createElement('pre');
-      editor.className = 'json-editor';
-      editor.contentEditable = true;
-      editor.spellcheck = false;
-      editor.setAttribute('placeholder', `JSON ${i + 1}`);
-      
-      editor.addEventListener('input', function() {
-        // 移除 saveData() 调用
-        // saveData();
-      });
-      
-      const buttonContainer = document.createElement('div');
-      buttonContainer.className = 'button-container';
-      
-      const formatButton = document.createElement('button');
-      formatButton.textContent = '格式化';
-      formatButton.className = 'format-button';
-      formatButton.addEventListener('click', function() {
-        formatJsonEditor(editor);
-      });
-      
-      const generateDemoButton = document.createElement('button');
-      generateDemoButton.textContent = '演示数据';
-      generateDemoButton.className = 'generate-demo-button';
-      generateDemoButton.addEventListener('click', function() {
-        generateDemoData(editor);
-      });
-      
-      const expandAllButton = document.createElement('button');
-      expandAllButton.textContent = '展开';
-      expandAllButton.className = 'expand-all-button';
-      expandAllButton.addEventListener('click', function() {
-        expandAllJson(editor);
-      });
-      
-      // 添加复制按钮
-      const copyButton = document.createElement('button');
-      copyButton.textContent = '复制';
-      copyButton.className = 'copy-button';
-      copyButton.addEventListener('click', function() {
-        copyJsonContent(editor);
-      });
-      
-      // 添加清除按钮
-      const clearButton = document.createElement('button');
-      clearButton.textContent = '清除';
-      clearButton.className = 'clear-button';
-      clearButton.addEventListener('click', function() {
-        clearJsonEditor(editor);
-      });
-      
-      buttonContainer.appendChild(formatButton);
-      buttonContainer.appendChild(generateDemoButton);
-      buttonContainer.appendChild(expandAllButton);
-      buttonContainer.appendChild(copyButton);
-      buttonContainer.appendChild(clearButton); // 添加清除按钮到容器
-      
-      pane.appendChild(buttonContainer);
-      pane.appendChild(editor);
-      jsonInputs.appendChild(pane);
+  // 清空现有的分栏
+  jsonInputs.innerHTML = '';
 
-      // 添加可拖动的分隔条，除了最后一pane
-      if (i < count - 1) {
-        const resizer = document.createElement('div');
-        resizer.className = 'resizer';
-        jsonInputs.appendChild(resizer);
-        resizer.addEventListener('mousedown', initResize);
-      }
-    }
-  } 
-  // 如果的数量小于当前数量，移除多余的分隔
-  else if (count < currentCount) {
-    for (let i = currentCount - 1; i >= count; i--) {
-      jsonInputs.removeChild(jsonInputs.lastChild); // 移除后一个分隔栏
-      if (i > count) {
-        jsonInputs.removeChild(jsonInputs.lastChild); // 移除分隔条
-      }
+  // 创建新的分隔栏
+  for (let i = 0; i < count; i++) {
+    const pane = document.createElement('div');
+    pane.className = 'json-pane';
+    pane.style.width = paneWidth;
+    
+    const editor = document.createElement('pre');
+    editor.className = 'json-editor';
+    editor.contentEditable = 'true';  // 确保使用字符串 'true'
+    editor.spellcheck = false;
+    editor.setAttribute('placeholder', `JSON ${i + 1}`);
+    
+    // 恢复数据或使用空字符串
+    editor.innerHTML = i < existingData.length ? existingData[i] : '';
+    
+    editor.addEventListener('input', function() {
+      // 可以在这里添加其他需要的操作
+    });
+    
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'button-container';
+    
+    const formatButton = document.createElement('button');
+    formatButton.textContent = '格式化';
+    formatButton.className = 'format-button';
+    formatButton.addEventListener('click', function() {
+      formatJsonEditor(editor);
+    });
+    
+    const generateDemoButton = document.createElement('button');
+    generateDemoButton.textContent = '演示数据';
+    generateDemoButton.className = 'generate-demo-button';
+    generateDemoButton.addEventListener('click', function() {
+      generateDemoData(editor);
+    });
+    
+    const expandAllButton = document.createElement('button');
+    expandAllButton.textContent = '展';
+    expandAllButton.className = 'expand-all-button';
+    expandAllButton.addEventListener('click', function() {
+      expandAllJson(editor);
+    });
+    
+    // 添加复制按钮
+    const copyButton = document.createElement('button');
+    copyButton.textContent = '复制';
+    copyButton.className = 'copy-button';
+    copyButton.addEventListener('click', function() {
+      copyJsonContent(editor);
+    });
+    
+    // 添加清除按钮
+    const clearButton = document.createElement('button');
+    clearButton.textContent = '清除';
+    clearButton.className = 'clear-button';
+    clearButton.addEventListener('click', function() {
+      clearJsonEditor(editor);
+    });
+    
+    buttonContainer.appendChild(formatButton);
+    buttonContainer.appendChild(generateDemoButton);
+    buttonContainer.appendChild(expandAllButton);
+    buttonContainer.appendChild(copyButton);
+    buttonContainer.appendChild(clearButton); // 添加清除按钮到容器
+    
+    pane.appendChild(buttonContainer);
+    pane.appendChild(editor);
+    jsonInputs.appendChild(pane);
+
+    // 添可拖动的分隔条除了最后一个pane
+    if (i < count - 1) {
+      const resizer = document.createElement('div');
+      resizer.className = 'resizer';
+      jsonInputs.appendChild(resizer);
+      resizer.addEventListener('mousedown', initResize);
     }
   }
 
@@ -158,8 +174,10 @@ function createJsonInputs(count) {
     pane.style.width = paneWidth;
   });
 
-  // 移除保存分隔栏数量的代码
-  // chrome.storage.local.set({paneCount: count});
+  // 确保所有编辑器都是可编辑的
+  document.querySelectorAll('.json-editor').forEach(editor => {
+    editor.contentEditable = 'true';
+  });
 }
 
 function initResize(e) {
@@ -189,7 +207,7 @@ function initResize(e) {
 function formatJSON(obj) {
   return JSON.stringify(obj, (key, value) => {
     if (typeof value === 'string') {
-      // 尝试解析字符串值为 JSON
+      // 尝试解析符串值为 JSON
       try {
         JSON.parse(value);
         // 如果成功解析，返回原始字符串，保留转义字符
@@ -228,12 +246,6 @@ function highlightJson(json) {
       } else {
         cls = 'json-string';
       }
-      // 对字符内容进行HTML转，JSON符
-      match = match.replace(/&/g, '&amp;')
-                   .replace(/</g, '&lt;')
-                   .replace(/>/g, '&gt;')
-                   .replace(/"/g, '&quot;')
-                   .replace(/'/g, '&#39;');
     } else if (/true|false/.test(match)) {
       cls = 'json-boolean';
     } else if (/null/.test(match)) {
@@ -292,7 +304,7 @@ function getRandomAge(min, max) {
 }
 
 function getRandomCity() {
-  const cities = ["北京", "上海", "广州", "深圳", "杭州", "南", "成都", "重庆", "武汉", "西安"];
+  const cities = ["北京", "上海", "广州", "深圳", "杭州", "南", "成都", "重庆", "武汉", "安"];
   return cities[Math.floor(Math.random() * cities.length)];
 }
 
@@ -353,7 +365,7 @@ function copyJsonContent(editor) {
 
 function clearJsonEditor(editor) {
   editor.textContent = '';
-  editor.innerHTML = ''; // 清除所有格式化的内容
+  editor.innerHTML = ''; // 清所格式化的内
   saveData(); // 保存更改
 }
 
@@ -367,7 +379,8 @@ function compareJsonData() {
     if (content) {
       try {
         const jsonContent = JSON.parse(content);
-        jsonObjects.push({ index, content: jsonContent });
+        const sortedJsonContent = sortObjectKeys(jsonContent);
+        jsonObjects.push({ index, content: sortedJsonContent });
       } catch (e) {
         alert(`JSON ${index + 1} 格式无效`);
         return;
@@ -401,12 +414,13 @@ function compareJsonData() {
 }
 
 function displayMultipleComparisonResults(baseObject, comparisons, editors) {
-  const baseContent = JSON.parse(editors[baseObject.index].textContent);
-  const highlightedBase = highlightDifferences(baseContent, comparisons.flatMap(c => c.differences), 'base');
+  const baseContent = sortObjectKeys(JSON.parse(editors[baseObject.index].textContent));
+  const allDifferences = comparisons.flatMap(c => c.differences);
+  const highlightedBase = highlightDifferences(baseContent, allDifferences, 'base');
   editors[baseObject.index].innerHTML = formatJSONWithHighlight(highlightedBase);
 
   comparisons.forEach(comparison => {
-    const content = JSON.parse(editors[comparison.index].textContent);
+    const content = sortObjectKeys(JSON.parse(editors[comparison.index].textContent));
     const highlightedContent = highlightDifferences(content, comparison.differences, 'compare');
     editors[comparison.index].innerHTML = formatJSONWithHighlight(highlightedContent);
   });
@@ -422,7 +436,17 @@ function highlightDifferences(obj, differences, type) {
 
   function highlightObject(current, path = '') {
     if (Array.isArray(current)) {
-      return current.map((item, index) => highlightObject(item, `${path}[${index}]`));
+      return current.map((item, index) => {
+        const newPath = `${path}[${index}]`;
+        if (diffPaths.has(newPath)) {
+          const diff = differences.find(d => d.path === newPath);
+          return {
+            value: highlightObject(item, newPath),
+            highlight: diff.type === 'missing' || diff.type === 'extra' ? 'highlight-red' : 'highlight-yellow'
+          };
+        }
+        return highlightObject(item, newPath);
+      });
     }
     if (typeof current !== 'object' || current === null) {
       return current;
@@ -433,15 +457,7 @@ function highlightDifferences(obj, differences, type) {
       const currentPath = path ? `${path}.${key}` : key;
       if (diffPaths.has(currentPath)) {
         const diff = differences.find(d => d.path === currentPath);
-        let highlightClass = '';
-        
-        // 根据差异类型选择高亮颜色
-        if (diff.type === 'missing' || diff.type === 'extra') {
-          highlightClass = 'highlight-red';
-        } else if (diff.type === 'value_mismatch') {
-          highlightClass = 'highlight-yellow';
-        }
-        
+        let highlightClass = diff.type === 'missing' || diff.type === 'extra' ? 'highlight-red' : 'highlight-yellow';
         highlightedObj[key] = {
           value: highlightObject(value, currentPath),
           highlight: highlightClass
@@ -469,7 +485,10 @@ function compareObjects(obj1, obj2, path = '', index) {
       } else if (i >= obj2.length) {
         differences.push({path: newPath, type: 'extra', value: obj1[i], index});
       } else {
-        differences.push(...compareObjects(obj1[i], obj2[i], newPath, index));
+        const elementDiffs = compareObjects(obj1[i], obj2[i], newPath, index);
+        if (elementDiffs.length > 0) {
+          differences.push(...elementDiffs);
+        }
       }
     }
   } else if (typeof obj1 === 'object' && obj1 !== null && typeof obj2 === 'object' && obj2 !== null) {
@@ -481,12 +500,11 @@ function compareObjects(obj1, obj2, path = '', index) {
         differences.push({path: newPath, type: 'missing', value: obj2[key], index});
       } else if (!(key in obj2)) {
         differences.push({path: newPath, type: 'extra', value: obj1[key], index});
-      } else if (typeof obj1[key] !== typeof obj2[key]) {
-        differences.push({path: newPath, type: 'type_mismatch', value1: obj1[key], value2: obj2[key], index});
-      } else if (typeof obj1[key] === 'object' && obj1[key] !== null) {
-        differences.push(...compareObjects(obj1[key], obj2[key], newPath, index));
-      } else if (JSON.stringify(obj1[key]) !== JSON.stringify(obj2[key])) {
-        differences.push({path: newPath, type: 'value_mismatch', value1: obj1[key], value2: obj2[key], index});
+      } else {
+        const propertyDiffs = compareObjects(obj1[key], obj2[key], newPath, index);
+        if (propertyDiffs.length > 0) {
+          differences.push(...propertyDiffs);
+        }
       }
     }
   } else if (obj1 !== obj2) {
@@ -505,51 +523,37 @@ function formatJSONWithHighlight(obj, indent = 0) {
   const isArray = Array.isArray(obj);
   const openBracket = isArray ? '[' : '{';
   const closeBracket = isArray ? ']' : '}';
-  const indentStr = ' '.repeat(indent);
-  const nextIndentStr = ' '.repeat(indent + 2);
+  const indentStr = ' '.repeat(indent * 2);
+  const nextIndentStr = ' '.repeat((indent + 1) * 2);
 
-  let result = `${openBracket}`;
+  let result = `${indentStr}${openBracket}\n`;
 
-  const entries = isArray ? obj : Object.entries(obj);
-  const lastIndex = entries.length - 1;
+  const entries = Object.entries(obj);
+  entries.forEach(([key, value], index) => {
+    const isLast = index === entries.length - 1;
+    const highlightClass = value && value.highlight ? value.highlight : '';
+    const actualValue = value && value.hasOwnProperty('value') ? value.value : value;
 
-  if (entries.length > 0) {
+    let line = nextIndentStr;
+    if (!isArray) {
+      line += `<span class="json-key">"${key}"</span>: `;
+    }
+
+    if (typeof actualValue === 'object' && actualValue !== null) {
+      const nestedJson = formatJSONWithHighlight(actualValue, indent + 1);
+      result += `<span class="${highlightClass}">${line}${nestedJson.trim()}</span>`;
+    } else {
+      const formattedValue = highlightJson(JSON.stringify(actualValue));
+      result += `<span class="${highlightClass}">${line}${formattedValue}</span>`;
+    }
+
+    if (!isLast) {
+      result += ',';
+    }
     result += '\n';
-    entries.forEach((item, index) => {
-      const isLast = index === lastIndex;
-      let key, value;
-      if (isArray) {
-        value = item;
-      } else {
-        [key, value] = item;
-      }
+  });
 
-      const highlightClass = value && value.highlight ? value.highlight : '';
-      const actualValue = value && value.hasOwnProperty('value') ? value.value : value;
-
-      let line = nextIndentStr;
-      if (!isArray) {
-        line += `<span class="json-key">"${key}"</span>: `;
-      }
-
-      if (typeof actualValue === 'object' && actualValue !== null) {
-        const nestedJson = formatJSONWithHighlight(actualValue, indent + 2);
-        result += `<span class="${highlightClass}">${line}${nestedJson.trim()}</span>`;
-      } else {
-        const formattedValue = highlightJson(JSON.stringify(actualValue));
-        result += `<span class="${highlightClass}">${line}${formattedValue}</span>`;
-      }
-
-      if (!isLast) {
-        result += ',';
-      }
-      result += '\n';
-    });
-    result += `${indentStr}${closeBracket}`;
-  } else {
-    result += closeBracket;
-  }
-
+  result += `${indentStr}${closeBracket}`;
   return result;
 }
 

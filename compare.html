@@ -93,7 +93,7 @@
       position: relative;
       overflow: hidden; /* 添加这行 */
     }
-    .json-editor { 
+    .json-editor {
       flex-grow: 1; 
       font-family: 'Consolas', 'Courier New', monospace;
       font-size: 16px; /* 增大字体大小 */
@@ -108,6 +108,10 @@
       background-color: #f8f8f8;
       color: #333;
       line-height: 1.5;
+      white-space: pre;
+      font-family: monospace;
+      line-height: 1.5;
+      tab-size: 2;
     }
     .json-editor:empty:before {
       content: attr(placeholder);
@@ -383,46 +387,33 @@
     .highlight-yellow {
       background-color: #ffff00; /* 黄色背景 */
       color: #000000; /* 黑色文字 */
-      font-weight: bold;
-      padding: 0 4px;
-      border-radius: 3px;
-      display: inline-block;
-      line-height: 1.5em;
-      width: 100%; /* 确保高亮覆盖整行 */
+      display: inline;
+      padding: 0 2px;
+      border-radius: 2px;
     }
 
     .highlight-red {
       background-color: #ffcccc; /* 浅红色背景 */
       color: #cc0000; /* 深红色文字 */
-      font-weight: bold;
-      padding: 0 4px;
-      border-radius: 3px;
-      display: inline-block;
-      line-height: 1.5em;
-      width: 100%; /* 确保高亮覆盖整行 */
+      display: inline;
+      padding: 0 2px;
+      border-radius: 2px;
     }
 
-    /* 移除或注释掉以下样式 */
+    /* 移除这些样式 */
     /*
-    .highlight-different { ... }
-    .highlight-missing { ... }
-    .highlight-extra { ... }
-    .highlight-mismatch { ... }
-    */
-
-    /* ... 其他样式保持不变 ... */
-
-    .json-editor span {
-      display: inline-block;
-      line-height: inherit;
-    }
-
     .highlight-yellow,
     .highlight-red {
-      display: inline-block;
       width: 100%;
       line-height: inherit;
     }
+    */
+
+    .json-editor span {
+      display: inline;
+    }
+
+    /* ... 其他样式保持不变 ... */
   </style>
 </head>
 <body>
