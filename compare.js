@@ -2,20 +2,26 @@
 // let lineNumber = 1;
 
 // 新增函数：递归地对对象的键进行排序
-function sortObjectKeys(obj) {
-  if (typeof obj !== 'object' || obj === null) {
-    return obj;
-  }
+// function sortObjectKeys(obj) {
+//   if (typeof obj !== 'object' || obj === null) {
+//     return obj;
+//   }
+//
+//   if (Array.isArray(obj)) {
+//     return obj.map(sortObjectKeys);
+//   }
+//
+//   return Object.keys(obj).sort().reduce((result, key) => {
+//     result[key] = sortObjectKeys(obj[key]);
+//     return result;
+//   }, {});
+// }
 
-  if (Array.isArray(obj)) {
-    return obj.map(sortObjectKeys);
-  }
-
-  return Object.keys(obj).sort().reduce((result, key) => {
-    result[key] = sortObjectKeys(obj[key]);
-    return result;
-  }, {});
-}
+// 删除或注释掉以下函数，因为我们不再需要它们
+// function formatJsonWithCollapsible(obj, indent = 0) { ... }
+// function addCollapsibleListeners(editor) { ... }
+// function toggleCollapse(event) { ... }
+// function expandAllJson(editor) { ... }
 
 function formatJsonWithCollapsible(obj, indent = 0) {
   if (typeof obj !== 'object' || obj === null) {
@@ -126,14 +132,8 @@ function createJsonInputs(count) {
       generateDemoData(editor);
     });
     
-    const expandAllButton = document.createElement('button');
-    expandAllButton.textContent = '展';
-    expandAllButton.className = 'expand-all-button';
-    expandAllButton.addEventListener('click', function() {
-      expandAllJson(editor);
-    });
+    // 移除展开按钮
     
-    // 添加复制按钮
     const copyButton = document.createElement('button');
     copyButton.textContent = '复制';
     copyButton.className = 'copy-button';
@@ -141,7 +141,6 @@ function createJsonInputs(count) {
       copyJsonContent(editor);
     });
     
-    // 添加清除按钮
     const clearButton = document.createElement('button');
     clearButton.textContent = '清除';
     clearButton.className = 'clear-button';
@@ -151,9 +150,9 @@ function createJsonInputs(count) {
     
     buttonContainer.appendChild(formatButton);
     buttonContainer.appendChild(generateDemoButton);
-    buttonContainer.appendChild(expandAllButton);
+    // 移除添加展开按钮的代码
     buttonContainer.appendChild(copyButton);
-    buttonContainer.appendChild(clearButton); // 添加清除按钮到容器
+    buttonContainer.appendChild(clearButton);
     
     pane.appendChild(buttonContainer);
     pane.appendChild(editor);
@@ -227,10 +226,7 @@ function formatJsonEditor(editor) {
     const formattedJson = formatJSON(parsedContent);
     const highlightedJson = highlightJson(formattedJson);
     editor.innerHTML = highlightedJson;
-    // 添加可折叠功能的监听器
-    addCollapsibleListeners(editor);
-    // 移除 saveData() 调用
-    // saveData();
+    // 移除对 addCollapsibleListeners 的调用
   } catch (e) {
     console.error('Invalid JSON:', e);
     alert('无效的 JSON 格式');
@@ -253,29 +249,6 @@ function highlightJson(json) {
     }
     return '<span class="' + cls + '">' + match + '</span>';
   });
-}
-
-function addCollapsibleListeners(editor) {
-  const collapsibles = editor.querySelectorAll('.collapsible');
-  collapsibles.forEach(collapsible => {
-    collapsible.addEventListener('click', toggleCollapse);
-  });
-}
-
-function toggleCollapse(event) {
-  event.stopPropagation();
-  const collapsible = event.target;
-  collapsible.classList.toggle('collapsed');
-  const content = collapsible.nextElementSibling;
-  if (content && content.classList.contains('collapsible-content')) {
-    content.classList.toggle('collapsed');
-    
-    if (content.classList.contains('collapsed')) {
-      content.style.display = 'none';
-    } else {
-      content.style.display = 'block';
-    }
-  }
 }
 
 function generateDemoData(editor) {
@@ -341,18 +314,6 @@ function clearAllData() {
   // 移除 saveData() 调用（如果有的话）
 }
 
-function expandAllJson(editor) {
-  const collapsibles = editor.querySelectorAll('.collapsible');
-  collapsibles.forEach(collapsible => {
-    collapsible.classList.remove('collapsed');
-    const content = collapsible.nextElementSibling;
-    if (content && content.classList.contains('collapsible-content')) {
-      content.classList.remove('collapsed');
-      content.style.display = 'block';
-    }
-  });
-}
-
 function copyJsonContent(editor) {
   const content = editor.textContent;
   navigator.clipboard.writeText(content).then(() => {
@@ -379,8 +340,8 @@ function compareJsonData() {
     if (content) {
       try {
         const jsonContent = JSON.parse(content);
-        const sortedJsonContent = sortObjectKeys(jsonContent);
-        jsonObjects.push({ index, content: sortedJsonContent });
+        // 移除了 sortObjectKeys 的调用
+        jsonObjects.push({ index, content: jsonContent });
       } catch (e) {
         alert(`JSON ${index + 1} 格式无效`);
         return;
@@ -414,18 +375,18 @@ function compareJsonData() {
 }
 
 function displayMultipleComparisonResults(baseObject, comparisons, editors) {
-  const baseContent = sortObjectKeys(JSON.parse(editors[baseObject.index].textContent));
+  const baseContent = JSON.parse(editors[baseObject.index].textContent);
   const allDifferences = comparisons.flatMap(c => c.differences);
   const highlightedBase = highlightDifferences(baseContent, allDifferences, 'base');
   editors[baseObject.index].innerHTML = formatJSONWithHighlight(highlightedBase);
 
   comparisons.forEach(comparison => {
-    const content = sortObjectKeys(JSON.parse(editors[comparison.index].textContent));
+    const content = JSON.parse(editors[comparison.index].textContent);
     const highlightedContent = highlightDifferences(content, comparison.differences, 'compare');
     editors[comparison.index].innerHTML = formatJSONWithHighlight(highlightedContent);
   });
 
-  editors.forEach(editor => addCollapsibleListeners(editor));
+  // 移除对 addCollapsibleListeners 的调用
 }
 
 function highlightDifferences(obj, differences, type) {
@@ -561,6 +522,22 @@ function getValueByPath(obj, path) {
   return path.split('.').reduce((o, p) => o && o[p], obj);
 }
 
+// 在文件的适当位置添加以下函数
+
+function applySmallFontSize() {
+  const style = document.createElement('style');
+  style.textContent = `
+    .json-editor {
+      font-size: 13px; /* 将字体大小从12px增加到13px */
+      line-height: 1.5; /* 稍微增加行高以提高可读性 */
+    }
+    .json-key, .json-string, .json-number, .json-boolean, .json-null {
+      font-size: inherit; /* 确保所有JSON元素继承相同的字体大小 */
+    }
+  `;
+  document.head.appendChild(style);
+}
+
 // DOMContentLoaded 事件监听器
 document.addEventListener('DOMContentLoaded', function() {
   const paneCountRadios = document.getElementsByName('paneCount');
@@ -578,6 +555,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
   clearAllButton.addEventListener('click', clearAllData);
   compareButton.addEventListener('click', compareJsonData);
+
+  applySmallFontSize(); // 添加这行来应用小字体
 
   // 初始化：创建默认的 JSON 输入框
   createJsonInputs(2); // 默认创建 2 个分隔栏
